@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Track } from "../types/track";
 
 interface FavoritesContextType {
-  favorites: string[];
-  toggleFavorite: (trackId: string) => void;
+  favorites: Track[];
+  toggleFavorite: (track: Track) => void;
   isFavorite: (trackId: string) => boolean;
 }
 
@@ -14,7 +15,7 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(
 const FAVORITES_STORAGE_KEY = "@music_player_favorites";
 
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const [favorites, setFavorites] = useState<Track[]>([]);
 
   // Load favorites from storage when the app starts
   useEffect(() => {
@@ -48,15 +49,16 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const toggleFavorite = (trackId: string) => {
+  const toggleFavorite = (track: Track) => {
     setFavorites((prev) =>
-      prev.includes(trackId)
-        ? prev.filter((id) => id !== trackId)
-        : [...prev, trackId]
+      prev.some((t) => t.id === track.id)
+        ? prev.filter((t) => t.id !== track.id)
+        : [...prev, track]
     );
   };
 
-  const isFavorite = (trackId: string) => favorites.includes(trackId);
+  const isFavorite = (trackId: string) =>
+    favorites.some((track) => track.id === trackId);
 
   return (
     <FavoritesContext.Provider

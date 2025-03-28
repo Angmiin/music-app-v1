@@ -67,20 +67,25 @@ export function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    const fetchAllSongs = async () => {
+    const fetchSongs = async () => {
       setIsLoading(true);
       try {
-        const results = await deezerApi.searchTracks("popular");
-        setAllSongs(results);
-        setPlaylist(results);
+        // Fetch popular songs for the Popular category
+        const popularResults = await deezerApi.searchTracks("popular");
+
+        // Fetch random songs for All Songs section
+        const randomResults = await deezerApi.searchTracks("random");
+
+        setAllSongs(randomResults);
+        setPlaylist(randomResults);
       } catch (error) {
-        console.error("Error fetching all songs:", error);
+        console.error("Error fetching songs:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchAllSongs();
+    fetchSongs();
   }, []);
 
   const handleSearch = async (query: string) => {
@@ -109,8 +114,38 @@ export function HomeScreen() {
     }
   };
 
-  const handleCategoryPress = (category: Category) => {
-    console.log("Category pressed:", category.name);
+  const handleCategoryPress = async (category: Category) => {
+    setIsLoading(true);
+    try {
+      let searchTerm = "";
+      switch (category.name) {
+        case "Popular":
+          searchTerm = "popular";
+          break;
+        case "New Releases":
+          searchTerm = "new";
+          break;
+        case "Trending":
+          searchTerm = "trending";
+          break;
+        case "Chill Hits":
+          searchTerm = "chill";
+          break;
+        default:
+          searchTerm = category.name.toLowerCase();
+      }
+
+      const results = await deezerApi.searchTracks(searchTerm);
+      setPlaylist(results);
+      navigation.navigate("Category", {
+        category: category.name,
+        tracks: results,
+      });
+    } catch (error) {
+      console.error("Error fetching category tracks:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const categories: Category[] = [
@@ -167,7 +202,7 @@ export function HomeScreen() {
         <Text style={styles.trackArtist}>{track.artist}</Text>
       </View>
       <TouchableOpacity
-        onPress={() => toggleFavorite(track.id)}
+        onPress={() => toggleFavorite(track)}
         style={styles.favoriteButton}
       >
         <Ionicons
@@ -227,51 +262,33 @@ export function HomeScreen() {
           />
         </View>
 
-        <ScrollView style={styles.content}>
-          <View style={styles.categoriesContainer}>
-            <Text style={styles.sectionTitle}>Categories</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.categoriesList}
-            >
-              {categories.map((category) => (
-                <TouchableOpacity
-                  key={category.id}
-                  style={styles.categoryItem}
-                  onPress={() => handleCategoryPress(category)}
-                >
-                  <LinearGradient
-                    colors={category.gradient}
-                    style={styles.categoryGradient}
-                  >
-                    <Ionicons name={category.icon} size={24} color="#fff" />
-                    <Text style={styles.categoryTitle}>{category.name}</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-
-          <View style={styles.songsContainer}>
-            <Text style={styles.sectionTitle}>All Songs</Text>
-            {isLoading ? (
-              <ActivityIndicator
-                size="large"
-                color="#fff"
-                style={styles.loader}
-              />
-            ) : (
-              <FlatList
-                data={displayTracks}
-                renderItem={renderTrack}
-                keyExtractor={(item) => item.id}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.tracksList}
-              />
+        {isLoading ? (
+          <ActivityIndicator
+            size="large"
+            color="#FF6B6B"
+            style={styles.loader}
+          />
+        ) : (
+          <FlatList
+            data={displayTracks}
+            keyExtractor={(item) => item.id}
+            renderItem={renderTrack}
+            style={styles.content}
+            ListHeaderComponent={() => (
+              <View style={styles.categoriesContainer}>
+                <Text style={styles.sectionTitle}>Categories</Text>
+                <FlatList
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  data={categories}
+                  keyExtractor={(item) => item.id}
+                  renderItem={renderCategory}
+                  contentContainerStyle={styles.categoriesList}
+                />
+              </View>
             )}
-          </View>
-        </ScrollView>
+          />
+        )}
       </LinearGradient>
     </SafeAreaView>
   );
@@ -340,7 +357,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#1E1E1E",
     borderRadius: 8,
     marginBottom: 8,
-    marginRight: 8,
+    marginRight: 20,
+    marginLeft: 20,
     width: width - 32, // Full width minus padding
   },
   activeTrack: {

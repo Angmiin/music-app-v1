@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { HomeScreen } from "./app/screens/HomeScreen";
 import { PlayerScreen } from "./app/screens/PlayerScreen";
 import { FavoritesScreen } from "./app/screens/FavoritesScreen";
+import { CategoryScreen } from "./app/screens/CategoryScreen";
 import { AudioProvider } from "./app/context/audio-context";
 import { FavoritesProvider } from "./app/context/favorites-context";
 import { RootStackParamList } from "./app/types/navigation";
@@ -23,6 +24,7 @@ export default function App() {
             <Stack.Screen name="Home" component={HomeScreen} />
             <Stack.Screen name="Player" component={PlayerScreen} />
             <Stack.Screen name="Favorites" component={FavoritesScreen} />
+            <Stack.Screen name="Category" component={CategoryScreen} />
           </Stack.Navigator>
         </FavoritesProvider>
       </AudioProvider>
