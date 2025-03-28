@@ -9,27 +9,23 @@ import React, {
   ReactNode,
 } from "react";
 import { Audio } from "expo-av";
-import { Track, playlist } from "../data/playlist";
+import { Track } from "../types/track";
 
 interface AudioContextType {
   currentTrack: Track | null;
   isPlaying: boolean;
-  position: number;
   duration: number;
-  error: string | null;
-  volume: number;
+  position: number;
   playlist: Track[];
+  setPlaylist: (tracks: Track[]) => void;
   loadTrack: (track: Track) => Promise<void>;
-  togglePlayPause: () => Promise<void>;
-  playNextTrack: () => Promise<void>;
-  playPreviousTrack: () => Promise<void>;
+  playTrack: () => Promise<void>;
+  pauseTrack: () => Promise<void>;
+  stopTrack: () => Promise<void>;
   seekTo: (position: number) => Promise<void>;
-  setVolume: (volume: number) => Promise<void>;
-  stopTrack: () => void;
-  currentPosition: number;
 }
 
-const AudioContext = createContext<AudioContextType | null>(null);
+const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
 interface AudioProviderProps {
   children: ReactNode;
@@ -39,214 +35,99 @@ export function AudioProvider({ children }: AudioProviderProps) {
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [position, setPosition] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [volume, setVolumeState] = useState(0.3);
-  const [error, setError] = useState<string | null>(null);
-  const isMounted = useRef(true);
-  const soundRef = useRef<Audio.Sound | null>(null);
-  const isLoadingRef = useRef(false);
-  const [currentPosition, setCurrentPosition] = useState(0);
+  const [position, setPosition] = useState(0);
+  const [playlist, setPlaylist] = useState<Track[]>([]);
 
   useEffect(() => {
-    const setupAudio = async () => {
-      try {
-        await Audio.setAudioModeAsync({
-          allowsRecordingIOS: false,
-          playsInSilentModeIOS: true,
-          staysActiveInBackground: true,
-          shouldDuckAndroid: true,
-          playThroughEarpieceAndroid: false,
-        });
-        console.log("Audio mode setup successful");
-      } catch (error) {
-        console.error("Error setting up audio:", error);
-      }
-    };
-
-    setupAudio();
-
     return () => {
-      isMounted.current = false;
-      cleanupSound();
-    };
-  }, []);
-
-  const cleanupSound = async () => {
-    try {
-      if (soundRef.current) {
-        const sound = soundRef.current;
-        soundRef.current = null;
-        setSound(null);
-
-        try {
-          await sound.stopAsync();
-          await sound.unloadAsync();
-        } catch (error) {
-          console.error("Error during sound cleanup:", error);
-        }
+      if (sound) {
+        sound.unloadAsync();
       }
-    } catch (error) {
-      console.error("Error in cleanupSound:", error);
+    };
+  }, [sound]);
+
+  const onPlaybackStatusUpdate = (status: any) => {
+    if (status.isLoaded) {
+      setPosition(status.positionMillis);
+      setDuration(status.durationMillis || 0);
     }
   };
 
   const loadTrack = async (track: Track) => {
-    if (isLoadingRef.current) return;
-    isLoadingRef.current = true;
-
     try {
-      // First cleanup any existing sound
-      await cleanupSound();
-
-      // Validate URL
-      if (!track.url) {
-        throw new Error("Invalid track URL");
-      }
-
-      // Configure audio mode before loading
+      // Configure audio mode
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: false,
-        playsInSilentModeIOS: true,
         staysActiveInBackground: true,
+        playsInSilentModeIOS: true,
         shouldDuckAndroid: true,
         playThroughEarpieceAndroid: false,
       });
 
-      // Create and load the sound with minimal options
+      if (sound) {
+        await sound.unloadAsync();
+      }
+
       const { sound: newSound } = await Audio.Sound.createAsync(
         { uri: track.url },
-        {
-          shouldPlay: true,
-          progressUpdateIntervalMillis: 100,
-          positionMillis: 0,
-          volume: 0.1,
-          rate: 1.0,
-          shouldCorrectPitch: true,
-        },
+        { shouldPlay: true },
         onPlaybackStatusUpdate
       );
 
-      if (!isMounted.current) {
-        await newSound.unloadAsync();
-        return;
-      }
-
-      // Set the sound reference before any other operations
-      soundRef.current = newSound;
       setSound(newSound);
       setCurrentTrack(track);
-      setPosition(0);
-      setDuration(track.duration);
       setIsPlaying(true);
-      setError(null);
-    } catch (error) {
-      console.error("Error in loadTrack:", error);
-      if (isMounted.current) {
-        setError("Failed to load track");
-      }
-    } finally {
-      isLoadingRef.current = false;
-    }
-  };
+      setPosition(0);
+      setDuration(0);
 
-  const onPlaybackStatusUpdate = async (status: any) => {
-    if (!isMounted.current) return;
-
-    try {
+      // Get initial duration
+      const status = await newSound.getStatusAsync();
       if (status.isLoaded) {
-        setPosition(status.positionMillis / 1000);
-        setDuration(status.durationMillis / 1000);
-        setIsPlaying(status.isPlaying);
-
-        if (status.didJustFinish) {
-          setTimeout(async () => {
-            await playNextTrack();
-          }, 1000);
-        }
-      } else if (status.error) {
-        setError(`Playback error: ${status.error}`);
+        setDuration(status.durationMillis || 0);
       }
     } catch (error) {
-      console.error("Error in onPlaybackStatusUpdate:", error);
+      console.error("Error loading track:", error);
     }
   };
 
-  const togglePlayPause = async () => {
+  const playTrack = async () => {
     try {
-      if (!soundRef.current) {
-        if (currentTrack) {
-          await loadTrack(currentTrack);
-        }
-        return;
-      }
-
-      const sound = soundRef.current;
-      if (isPlaying) {
-        await sound.pauseAsync();
-      } else {
-        await sound.playAsync();
-      }
+      if (!sound) return;
+      await sound.playAsync();
+      setIsPlaying(true);
     } catch (error) {
-      console.error("Error in togglePlayPause:", error);
-      setError("Failed to toggle playback");
+      console.error("Error playing track:", error);
     }
   };
 
-  const playNextTrack = async () => {
-    if (!currentTrack) return;
-    const currentIndex = playlist.findIndex(
-      (track) => track.id === currentTrack.id
-    );
-    const nextIndex = (currentIndex + 1) % playlist.length;
-    await loadTrack(playlist[nextIndex]);
-  };
-
-  const playPreviousTrack = async () => {
-    if (!currentTrack) return;
-    const currentIndex = playlist.findIndex(
-      (track) => track.id === currentTrack.id
-    );
-    const previousIndex =
-      (currentIndex - 1 + playlist.length) % playlist.length;
-    await loadTrack(playlist[previousIndex]);
-  };
-
-  const seekTo = async (position: number) => {
+  const pauseTrack = async () => {
     try {
-      if (!soundRef.current) return;
-      await soundRef.current.setPositionAsync(position * 1000);
+      if (!sound) return;
+      await sound.pauseAsync();
+      setIsPlaying(false);
     } catch (error) {
-      if (isMounted.current) {
-        setError("Failed to seek");
-        console.error("Error seeking:", error);
-      }
-    }
-  };
-
-  const setVolume = async (newVolume: number) => {
-    try {
-      if (!soundRef.current) return;
-      await soundRef.current.setVolumeAsync(newVolume);
-      if (isMounted.current) {
-        setVolumeState(newVolume);
-      }
-    } catch (error) {
-      if (isMounted.current) {
-        setError("Failed to set volume");
-        console.error("Error setting volume:", error);
-      }
+      console.error("Error pausing track:", error);
     }
   };
 
   const stopTrack = async () => {
-    if (sound) {
+    try {
+      if (!sound) return;
       await sound.stopAsync();
-      await sound.unloadAsync();
-      setSound(null);
-      setCurrentTrack(null);
       setIsPlaying(false);
-      setCurrentPosition(0);
+      setPosition(0);
+    } catch (error) {
+      console.error("Error stopping track:", error);
+    }
+  };
+
+  const seekTo = async (position: number) => {
+    try {
+      if (!sound) return;
+      await sound.setPositionAsync(position);
+    } catch (error) {
+      console.error("Error seeking track:", error);
     }
   };
 
@@ -255,19 +136,15 @@ export function AudioProvider({ children }: AudioProviderProps) {
       value={{
         currentTrack,
         isPlaying,
-        position,
         duration,
-        error,
-        volume,
+        position,
         playlist,
+        setPlaylist,
         loadTrack,
-        togglePlayPause,
-        playNextTrack,
-        playPreviousTrack,
-        seekTo,
-        setVolume,
+        playTrack,
+        pauseTrack,
         stopTrack,
-        currentPosition,
+        seekTo,
       }}
     >
       {children}
@@ -277,7 +154,7 @@ export function AudioProvider({ children }: AudioProviderProps) {
 
 export function useAudio() {
   const context = useContext(AudioContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error("useAudio must be used within an AudioProvider");
   }
   return context;

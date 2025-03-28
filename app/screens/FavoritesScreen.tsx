@@ -3,8 +3,8 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   FlatList,
+  TouchableOpacity,
   Image,
   SafeAreaView,
 } from "react-native";
@@ -14,26 +14,30 @@ import { useNavigation } from "@react-navigation/native";
 import { NavigationProp } from "../types/navigation";
 import { useAudio } from "../context/audio-context";
 import { useFavorites } from "../context/favorites-context";
-import { playlist } from "../data/playlist";
+import { Track } from "../types/track";
 
 export function FavoritesScreen() {
   const navigation = useNavigation<NavigationProp>();
-  const { currentTrack } = useAudio();
-  const { favorites, toggleFavorite } = useFavorites();
+  const { playlist } = useAudio();
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
 
+  // Filter tracks that are in favorites
   const favoriteTracks = playlist.filter((track) =>
     favorites.includes(track.id)
   );
 
-  const renderTrack = ({ item: track }) => (
+  const handleTrackPress = (track: Track) => {
+    navigation.navigate("Player", { track });
+  };
+
+  const handleFavoritePress = (trackId: string) => {
+    toggleFavorite(trackId);
+  };
+
+  const renderTrack = ({ item: track }: { item: Track }) => (
     <TouchableOpacity
-      style={[
-        styles.trackItem,
-        currentTrack?.id === track.id && styles.activeTrack,
-      ]}
-      onPress={() => {
-        navigation.navigate("Player", { track });
-      }}
+      style={styles.trackItem}
+      onPress={() => handleTrackPress(track)}
     >
       {track.artwork ? (
         <Image source={{ uri: track.artwork }} style={styles.artwork} />
@@ -47,13 +51,13 @@ export function FavoritesScreen() {
         <Text style={styles.trackArtist}>{track.artist}</Text>
       </View>
       <TouchableOpacity
-        onPress={() => toggleFavorite(track.id)}
+        onPress={() => handleFavoritePress(track.id)}
         style={styles.favoriteButton}
       >
         <Ionicons
-          name={favorites.includes(track.id) ? "heart" : "heart-outline"}
+          name={isFavorite(track.id) ? "heart" : "heart-outline"}
           size={24}
-          color={favorites.includes(track.id) ? "#FF4B4B" : "#666"}
+          color={isFavorite(track.id) ? "#FF4B4B" : "#666"}
         />
       </TouchableOpacity>
     </TouchableOpacity>
@@ -61,39 +65,30 @@ export function FavoritesScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient colors={["#1e1e1e", "#121212"]} style={styles.gradient}>
-        <View style={styles.content}>
+      <LinearGradient colors={["#1a1a1a", "#000000"]} style={styles.gradient}>
+        <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
             <Ionicons name="chevron-back" size={24} color="#fff" />
           </TouchableOpacity>
-
-          <View style={styles.header}>
-            <Text style={styles.title}>Favorites</Text>
-            <Text style={styles.subtitle}>
-              {favoriteTracks.length} songs in your favorites
-            </Text>
-          </View>
-
-          {favoriteTracks.length === 0 ? (
-            <View style={styles.emptyState}>
-              <Ionicons name="heart-outline" size={64} color="#666" />
-              <Text style={styles.emptyStateText}>
-                No favorite songs yet. Start adding some!
-              </Text>
-            </View>
-          ) : (
-            <FlatList
-              data={favoriteTracks}
-              renderItem={renderTrack}
-              keyExtractor={(item) => item.id}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.playlist}
-            />
-          )}
+          <Text style={styles.title}>Favorites</Text>
         </View>
+
+        {favoriteTracks.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="heart-outline" size={64} color="#666" />
+            <Text style={styles.emptyStateText}>No favorite songs yet</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={favoriteTracks}
+            renderItem={renderTrack}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.list}
+          />
+        )}
       </LinearGradient>
     </SafeAreaView>
   );
@@ -102,41 +97,36 @@ export function FavoritesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#121212",
+    backgroundColor: "#000",
   },
   gradient: {
     flex: 1,
   },
-  content: {
-    flex: 1,
-  },
   header: {
-    padding: 20,
-    paddingTop: 80,
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#333",
+  },
+  backButton: {
+    marginRight: 16,
   },
   title: {
-    fontSize: 32,
+    fontSize: 20,
     fontWeight: "bold",
     color: "#fff",
-    marginBottom: 8,
   },
-  subtitle: {
-    fontSize: 16,
-    color: "#999",
-  },
-  playlist: {
+  list: {
     padding: 16,
   },
   trackItem: {
     flexDirection: "row",
     alignItems: "center",
     padding: 12,
-    backgroundColor: "#282828",
+    backgroundColor: "#1E1E1E",
     borderRadius: 8,
     marginBottom: 8,
-  },
-  activeTrack: {
-    backgroundColor: "#383838",
   },
   artwork: {
     width: 50,
@@ -144,7 +134,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   defaultArtwork: {
-    backgroundColor: "#383838",
+    backgroundColor: "#282828",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -168,18 +158,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
   },
   emptyStateText: {
+    color: "#666",
     fontSize: 16,
-    color: "#999",
-    textAlign: "center",
     marginTop: 16,
-  },
-  backButton: {
-    position: "absolute",
-    top: 40,
-    left: 20,
-    zIndex: 1,
   },
 });

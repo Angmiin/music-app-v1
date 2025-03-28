@@ -8,34 +8,46 @@ import {
   TextInput,
   Image,
   SafeAreaView,
-  ImageBackground,
   Dimensions,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useAudio } from "../context/audio-context";
 import { useFavorites } from "../context/favorites-context";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NavigationProp } from "../types/navigation";
-import { playlist, Track } from "../data/playlist";
+import { Track } from "../types/track";
+import { deezerApi } from "../services/deezer-api";
 
 const { width } = Dimensions.get("window");
-const CARD_WIDTH = (width - 48) / 2; 
+const CARD_WIDTH = (width - 48) / 2;
 
 interface Category {
   id: string;
   name: string;
   color: string;
+  gradient: [string, string];
+  icon: keyof typeof Ionicons.glyphMap;
 }
 
 export function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
-  const { loadTrack, playlist, currentTrack, isPlaying, stopTrack } =
-    useAudio();
-  const { toggleFavorite, favorites } = useFavorites();
+  const {
+    loadTrack,
+    currentTrack,
+    isPlaying,
+    stopTrack,
+    playlist,
+    setPlaylist,
+  } = useAudio();
+  const { toggleFavorite, favorites, isFavorite } = useFavorites();
   const [greeting, setGreeting] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Track[]>([]);
+  const [allSongs, setAllSongs] = useState<Track[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const updateGreeting = () => {
@@ -49,37 +61,91 @@ export function HomeScreen() {
       }
     };
 
-    // Update greeting immediately
     updateGreeting();
-
-    // Update greeting every minute
     const interval = setInterval(updateGreeting, 60000);
-
-    // Cleanup interval on component unmount
     return () => clearInterval(interval);
   }, []);
 
-  const categories: Category[] = [
-    { id: "1", name: "Chill Hits", color: "#FF6B6B" },
-    { id: "2", name: "Top Hits", color: "#4ECDC4" },
-    { id: "3", name: "New Releases", color: "#45B7D1" },
-    { id: "4", name: "Trending", color: "#96CEB4" },
-  ];
+  useEffect(() => {
+    const fetchAllSongs = async () => {
+      setIsLoading(true);
+      try {
+        const results = await deezerApi.searchTracks("popular");
+        setAllSongs(results);
+        setPlaylist(results);
+      } catch (error) {
+        console.error("Error fetching all songs:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const filteredPlaylist = playlist.filter((track) =>
-    track.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    fetchAllSongs();
+  }, []);
+
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    if (query.trim()) {
+      setIsLoading(true);
+      try {
+        const results = await deezerApi.searchTracks(query);
+        setSearchResults(results);
+      } catch (error) {
+        console.error("Error searching tracks:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      setSearchResults([]);
+    }
+  };
 
   const handleTrackPress = (track: Track) => {
     if (currentTrack?.id === track.id) {
-      // If the same track is pressed, stop it
       stopTrack();
     } else {
-      // If a different track is pressed, load and play it
       loadTrack(track);
       navigation.navigate("Player", { track });
     }
   };
+
+  const handleCategoryPress = (category: Category) => {
+    console.log("Category pressed:", category.name);
+  };
+
+  const categories: Category[] = [
+    {
+      id: "1",
+      name: "Chill Hits",
+      color: "#FF6B6B",
+      gradient: ["#FF6B6B", "#FF6B6B80"],
+      icon: "musical-note",
+    },
+    {
+      id: "2",
+      name: "Popular",
+      color: "#4ECDC4",
+      gradient: ["#4ECDC4", "#4ECDC480"],
+      icon: "musical-note",
+    },
+    {
+      id: "3",
+      name: "New Releases",
+      color: "#45B7D1",
+      gradient: ["#45B7D1", "#45B7D180"],
+      icon: "musical-note",
+    },
+    {
+      id: "4",
+      name: "Trending",
+      color: "#96CEB4",
+      gradient: ["#96CEB4", "#96CEB480"],
+      icon: "musical-note",
+    },
+  ];
+
+  // Use searchResults if there's a search query, otherwise use allSongs
+  const displayTracks = searchQuery ? searchResults : allSongs;
 
   const renderTrack = ({ item: track }: { item: Track }) => (
     <TouchableOpacity
@@ -105,106 +171,107 @@ export function HomeScreen() {
         style={styles.favoriteButton}
       >
         <Ionicons
-          name={favorites.includes(track.id) ? "heart" : "heart-outline"}
+          name={isFavorite(track.id) ? "heart" : "heart-outline"}
           size={24}
-          color={favorites.includes(track.id) ? "#FF4B4B" : "#666"}
+          color={isFavorite(track.id) ? "#FF4B4B" : "#666"}
         />
       </TouchableOpacity>
     </TouchableOpacity>
   );
 
   const renderCategory = ({ item: category }: { item: Category }) => (
-    <TouchableOpacity style={styles.categoryCard}>
+    <TouchableOpacity
+      style={styles.categoryCard}
+      onPress={() => handleCategoryPress(category)}
+    >
       <LinearGradient
-        colors={[category.color, `${category.color}80`]}
+        colors={category.gradient}
         style={styles.categoryGradient}
       >
+        <Ionicons name={category.icon} size={24} color="#fff" />
         <Text style={styles.categoryTitle}>{category.name}</Text>
       </LinearGradient>
     </TouchableOpacity>
   );
 
-  const renderFavorite = ({ item: track }: { item: Track }) => (
-    <TouchableOpacity
-      style={styles.favoriteTrack}
-      onPress={() => handleTrackPress(track)}
-    >
-      {track.artwork ? (
-        <Image source={{ uri: track.artwork }} style={styles.favoriteArtwork} />
-      ) : (
-        <View style={[styles.favoriteArtwork, styles.defaultArtwork]}>
-          <Ionicons name="musical-note" size={24} color="#666" />
-        </View>
-      )}
-      <View style={styles.favoriteInfo}>
-        <Text style={styles.favoriteTitle}>{track.title}</Text>
-        <Text style={styles.favoriteArtist}>{track.artist}</Text>
-      </View>
-    </TouchableOpacity>
-  );
-
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient colors={["#1e1e1e", "#121212"]} style={styles.gradient}>
-        <View style={styles.content}>
-          {/* Header */}
-          <View style={styles.header}>
+      <LinearGradient colors={["#1a1a1a", "#000000"]} style={styles.gradient}>
+        <View style={styles.header}>
+          <View style={styles.headerContent}>
             <Text style={styles.greeting}>{greeting}</Text>
             <View style={styles.headerButtons}>
               <TouchableOpacity
-                style={styles.iconButton}
+                style={styles.headerButton}
                 onPress={() => navigation.navigate("Favorites")}
               >
-                <Ionicons name="heart-outline" size={24} color="#fff" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.iconButton}>
-                <Ionicons name="person-outline" size={24} color="#fff" />
+                <Ionicons name="heart" size={24} color="#fff" />
               </TouchableOpacity>
             </View>
           </View>
+        </View>
 
-          {/* Search Bar */}
-          <View style={styles.searchContainer}>
-            <Ionicons
-              name="search"
-              size={20}
-              color="#666"
-              style={styles.searchIcon}
-            />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search songs, artists..."
-              placeholderTextColor="#666"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
+        <View style={styles.searchContainer}>
+          <Ionicons
+            name="search"
+            size={20}
+            color="#666"
+            style={styles.searchIcon}
+          />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search songs or artists..."
+            placeholderTextColor="#666"
+            value={searchQuery}
+            onChangeText={handleSearch}
+          />
+        </View>
 
-          {/* Categories */}
-          <View style={styles.section}>
+        <ScrollView style={styles.content}>
+          <View style={styles.categoriesContainer}>
             <Text style={styles.sectionTitle}>Categories</Text>
-            <FlatList
-              data={categories}
-              renderItem={renderCategory}
-              keyExtractor={(item) => item.id}
+            <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.categoriesList}
-            />
+              style={styles.categoriesList}
+            >
+              {categories.map((category) => (
+                <TouchableOpacity
+                  key={category.id}
+                  style={styles.categoryItem}
+                  onPress={() => handleCategoryPress(category)}
+                >
+                  <LinearGradient
+                    colors={category.gradient}
+                    style={styles.categoryGradient}
+                  >
+                    <Ionicons name={category.icon} size={24} color="#fff" />
+                    <Text style={styles.categoryTitle}>{category.name}</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
 
-          {/* Playlist */}
-          <View style={styles.section}>
+          <View style={styles.songsContainer}>
             <Text style={styles.sectionTitle}>All Songs</Text>
-            <FlatList
-              data={filteredPlaylist}
-              renderItem={renderTrack}
-              keyExtractor={(item) => item.id}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.playlist}
-            />
+            {isLoading ? (
+              <ActivityIndicator
+                size="large"
+                color="#fff"
+                style={styles.loader}
+              />
+            ) : (
+              <FlatList
+                data={displayTracks}
+                renderItem={renderTrack}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.tracksList}
+              />
+            )}
           </View>
-        </View>
+        </ScrollView>
       </LinearGradient>
     </SafeAreaView>
   );
@@ -213,7 +280,7 @@ export function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#121212",
+    backgroundColor: "#000",
   },
   gradient: {
     flex: 1,
@@ -358,5 +425,27 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 4,
+  },
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  headerButton: {
+    padding: 8,
+  },
+  categoriesContainer: {
+    padding: 16,
+  },
+  categoryItem: {
+    marginRight: 16,
+  },
+  songsContainer: {
+    padding: 16,
+  },
+  tracksList: {
+    padding: 16,
+  },
+  loader: {
+    marginTop: 16,
   },
 });

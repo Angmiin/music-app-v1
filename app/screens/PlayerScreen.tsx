@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,26 +8,109 @@ import {
   SafeAreaView,
   Dimensions,
 } from "react-native";
+import Slider from "@react-native-community/slider";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useAudio } from "../context/audio-context";
 import { useNavigation } from "@react-navigation/native";
 import { NavigationProp } from "../types/navigation";
-import { MusicPlayer } from "../components/MusicPlayer";
+import { useFavorites } from "../context/favorites-context";
 
 const { width } = Dimensions.get("window");
 
 export function PlayerScreen() {
   const navigation = useNavigation<NavigationProp>();
-  const { currentTrack } = useAudio();
+  const {
+    currentTrack,
+    isPlaying,
+    playTrack,
+    pauseTrack,
+    seekTo,
+    position,
+    duration,
+    playlist,
+    loadTrack,
+  } = useAudio();
+  const { toggleFavorite, isFavorite } = useFavorites();
+  const [isDragging, setIsDragging] = useState(false);
+  const [sliderValue, setSliderValue] = useState(0);
+
+  useEffect(() => {
+    if (currentTrack) {
+      setSliderValue(position);
+    }
+  }, [position]);
+
+  const handleSeek = async (value: number) => {
+    try {
+      await seekTo(value);
+    } catch (error) {
+      console.error("Error seeking:", error);
+    }
+  };
+
+  const handleSlidingStart = () => {
+    setIsDragging(true);
+  };
+
+  const handleSlidingComplete = async (value: number) => {
+    setIsDragging(false);
+    await seekTo(value);
+  };
+
+  const handlePlayPause = () => {
+    if (isPlaying) {
+      pauseTrack();
+    } else {
+      playTrack();
+    }
+  };
+
+  const handleNext = () => {
+    if (!currentTrack || !playlist.length) return;
+
+    const currentIndex = playlist.findIndex(
+      (track) => track.id === currentTrack.id
+    );
+    if (currentIndex === -1) return;
+
+    const nextIndex = (currentIndex + 1) % playlist.length;
+    const nextTrack = playlist[nextIndex];
+
+    // Load and play the next track
+    loadTrack(nextTrack);
+  };
+
+  const handlePrevious = () => {
+    if (!currentTrack || !playlist.length) return;
+
+    const currentIndex = playlist.findIndex(
+      (track) => track.id === currentTrack.id
+    );
+    if (currentIndex === -1) return;
+
+    const previousIndex =
+      (currentIndex - 1 + playlist.length) % playlist.length;
+    const previousTrack = playlist[previousIndex];
+
+    // Load and play the previous track
+    loadTrack(previousTrack);
+  };
+
+  const formatTime = (milliseconds: number) => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
 
   if (!currentTrack) {
     return (
       <SafeAreaView style={styles.container}>
-        <LinearGradient colors={["#1e1e1e", "#121212"]} style={styles.gradient}>
-          {/* <View style={styles.content}> */}
-            {/* <Text style={styles.noTrackText}>No track selected</Text> */}
-          {/* </View> */}
+        <LinearGradient colors={["#1a1a1a", "#000000"]} style={styles.gradient}>
+          <View style={styles.content}>
+            <Text style={styles.noTrackText}>No track selected</Text>
+          </View>
         </LinearGradient>
       </SafeAreaView>
     );
@@ -35,7 +118,7 @@ export function PlayerScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient colors={["#1e1e1e", "#121212"]} style={styles.gradient}>
+      <LinearGradient colors={["#1a1a1a", "#000000"]} style={styles.gradient}>
         {/* Back Button */}
         <TouchableOpacity
           style={styles.backButton}
@@ -62,11 +145,56 @@ export function PlayerScreen() {
         <View style={styles.trackInfo}>
           <Text style={styles.trackTitle}>{currentTrack.title}</Text>
           <Text style={styles.trackArtist}>{currentTrack.artist}</Text>
+          <TouchableOpacity
+            onPress={() => toggleFavorite(currentTrack.id)}
+            style={styles.favoriteButton}
+          >
+            <Ionicons
+              name={isFavorite(currentTrack.id) ? "heart" : "heart-outline"}
+              size={24}
+              color={isFavorite(currentTrack.id) ? "#FF4B4B" : "#fff"}
+            />
+          </TouchableOpacity>
         </View>
 
-        {/* Music Player Controls */}
-        <View style={styles.playerContainer}>
-          <MusicPlayer />
+        {/* Progress Bar */}
+        <View style={styles.progressContainer}>
+          <Text style={styles.timeText}>{formatTime(sliderValue)}</Text>
+          <Slider
+            style={styles.slider}
+            minimumValue={0}
+            maximumValue={duration}
+            value={sliderValue}
+            onValueChange={handleSeek}
+            onSlidingStart={handleSlidingStart}
+            onSlidingComplete={handleSlidingComplete}
+            minimumTrackTintColor="#1DB954"
+            maximumTrackTintColor="#666"
+            thumbTintColor="#1DB954"
+          />
+          <Text style={styles.timeText}>{formatTime(duration)}</Text>
+        </View>
+
+        {/* Controls */}
+        <View style={styles.controls}>
+          <TouchableOpacity
+            onPress={handlePrevious}
+            style={styles.controlButton}
+          >
+            <Ionicons name="play-skip-back" size={24} color="#fff" />
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={handlePlayPause} style={styles.playButton}>
+            <Ionicons
+              name={isPlaying ? "pause" : "play"}
+              size={32}
+              color="#fff"
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={handleNext} style={styles.controlButton}>
+            <Ionicons name="play-skip-forward" size={24} color="#fff" />
+          </TouchableOpacity>
         </View>
       </LinearGradient>
     </SafeAreaView>
@@ -125,14 +253,39 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#999",
   },
-  playerContainer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "#282828",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 16,
+  progressContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    marginTop: 32,
+  },
+  timeText: {
+    color: "#fff",
+    marginHorizontal: 10,
+  },
+  slider: {
+    flex: 1,
+  },
+  controls: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 32,
+  },
+  controlButton: {
+    padding: 8,
+  },
+  playButton: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "#1DB954",
+    justifyContent: "center",
+    alignItems: "center",
+    marginHorizontal: 24,
+  },
+  favoriteButton: {
+    marginTop: 8,
+    padding: 8,
   },
 });
