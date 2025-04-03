@@ -6,6 +6,8 @@ import {
   Image,
   TouchableOpacity,
   SafeAreaView,
+  Platform,
+  StatusBar,
   Dimensions,
 } from "react-native";
 import Slider from "@react-native-community/slider";
@@ -117,91 +119,101 @@ export function PlayerScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <LinearGradient colors={["#1a1a1a", "#000000"]} style={styles.gradient}>
-        {/* Back Button */}
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="chevron-back" size={24} color="#fff" />
-        </TouchableOpacity>
-
-        {/* Album Art */}
-        <View style={styles.albumArtContainer}>
-          {currentTrack.artwork ? (
-            <Image
-              source={{ uri: currentTrack.artwork }}
-              style={styles.albumArt}
-            />
-          ) : (
-            <View style={[styles.albumArt, styles.defaultArtwork]}>
-              <Ionicons name="musical-note" size={64} color="#666" />
-            </View>
-          )}
-        </View>
-
-        {/* Track Info */}
-        <View style={styles.trackInfo}>
-          <Text style={styles.trackTitle}>{currentTrack.title}</Text>
-          <Text style={styles.trackArtist}>{currentTrack.artist}</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <LinearGradient colors={["#1a1a1a", "#000000"]} style={styles.gradient}>
+          {/* Back Button */}
           <TouchableOpacity
-            onPress={() => toggleFavorite(currentTrack.id)}
-            style={styles.favoriteButton}
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
           >
-            <Ionicons
-              name={isFavorite(currentTrack.id) ? "heart" : "heart-outline"}
-              size={24}
-              color={isFavorite(currentTrack.id) ? "#FF4B4B" : "#fff"}
+            <Ionicons name="chevron-back" size={24} color="#fff" />
+          </TouchableOpacity>
+
+          {/* Album Art */}
+          <View style={styles.albumArtContainer}>
+            {currentTrack.artwork ? (
+              <Image
+                source={{ uri: currentTrack.artwork }}
+                style={styles.albumArt}
+              />
+            ) : (
+              <View style={[styles.albumArt, styles.defaultArtwork]}>
+                <Ionicons name="musical-note" size={64} color="#666" />
+              </View>
+            )}
+          </View>
+
+          {/* Track Info */}
+          <View style={styles.trackInfo}>
+            <Text style={styles.trackTitle}>{currentTrack.title}</Text>
+            <Text style={styles.trackArtist}>{currentTrack.artist}</Text>
+            <TouchableOpacity
+              onPress={() => toggleFavorite(currentTrack)}
+              style={styles.favoriteButton}
+            >
+              <Ionicons
+                name={isFavorite(currentTrack.id) ? "heart" : "heart-outline"}
+                size={24}
+                color={isFavorite(currentTrack.id) ? "#FF4B4B" : "#fff"}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Progress Bar */}
+          <View style={styles.progressContainer}>
+            <Text style={styles.timeText}>{formatTime(sliderValue)}</Text>
+            <Slider
+              style={styles.slider}
+              minimumValue={0}
+              maximumValue={duration}
+              value={sliderValue}
+              onValueChange={handleSeek}
+              onSlidingStart={handleSlidingStart}
+              onSlidingComplete={handleSlidingComplete}
+              minimumTrackTintColor="#1DB954"
+              maximumTrackTintColor="#666"
+              thumbTintColor="#1DB954"
             />
-          </TouchableOpacity>
-        </View>
+            <Text style={styles.timeText}>{formatTime(duration)}</Text>
+          </View>
 
-        {/* Progress Bar */}
-        <View style={styles.progressContainer}>
-          <Text style={styles.timeText}>{formatTime(sliderValue)}</Text>
-          <Slider
-            style={styles.slider}
-            minimumValue={0}
-            maximumValue={duration}
-            value={sliderValue}
-            onValueChange={handleSeek}
-            onSlidingStart={handleSlidingStart}
-            onSlidingComplete={handleSlidingComplete}
-            minimumTrackTintColor="#1DB954"
-            maximumTrackTintColor="#666"
-            thumbTintColor="#1DB954"
-          />
-          <Text style={styles.timeText}>{formatTime(duration)}</Text>
-        </View>
+          {/* Controls */}
+          <View style={styles.controls}>
+            <TouchableOpacity
+              onPress={handlePrevious}
+              style={styles.controlButton}
+            >
+              <Ionicons name="play-skip-back" size={24} color="#fff" />
+            </TouchableOpacity>
 
-        {/* Controls */}
-        <View style={styles.controls}>
-          <TouchableOpacity
-            onPress={handlePrevious}
-            style={styles.controlButton}
-          >
-            <Ionicons name="play-skip-back" size={24} color="#fff" />
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handlePlayPause}
+              style={styles.playButton}
+            >
+              <Ionicons
+                name={isPlaying ? "pause" : "play"}
+                size={32}
+                color="#fff"
+              />
+            </TouchableOpacity>
 
-          <TouchableOpacity onPress={handlePlayPause} style={styles.playButton}>
-            <Ionicons
-              name={isPlaying ? "pause" : "play"}
-              size={32}
-              color="#fff"
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={handleNext} style={styles.controlButton}>
-            <Ionicons name="play-skip-forward" size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+            <TouchableOpacity onPress={handleNext} style={styles.controlButton}>
+              <Ionicons name="play-skip-forward" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+  },
   container: {
     flex: 1,
     backgroundColor: "#121212",

@@ -1,5 +1,5 @@
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Track } from "../data/playlist";
+import { Track } from "../types/track";
 
 export type RootStackParamList = {
   Home: undefined;

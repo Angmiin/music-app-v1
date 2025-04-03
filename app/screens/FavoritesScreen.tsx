@@ -3,6 +3,8 @@ import {
   View,
   Text,
   StyleSheet,
+  Platform,
+  StatusBar,
   FlatList,
   TouchableOpacity,
   Image,
@@ -64,42 +66,49 @@ export function FavoritesScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <LinearGradient colors={["#1a1a1a", "#000000"]} style={styles.gradient}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="chevron-back" size={24} color="#fff" />
-          </TouchableOpacity>
-          <View style={styles.headerContent}>
-            <Text style={styles.title}>Favorites</Text>
-            <Text style={styles.subtitle}>
-              {favorites.length} {favorites.length === 1 ? "song" : "songs"}
-            </Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <LinearGradient colors={["#1a1a1a", "#000000"]} style={styles.gradient}>
+          <View style={styles.header}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
+            >
+              <Ionicons name="chevron-back" size={24} color="#fff" />
+            </TouchableOpacity>
+            <View style={styles.headerContent}>
+              <Text style={styles.title}>Favorites</Text>
+              <Text style={styles.subtitle}>
+                {favorites.length} {favorites.length === 1 ? "song" : "songs"}
+              </Text>
+            </View>
           </View>
-        </View>
 
-        {favorites.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="heart-outline" size={64} color="#666" />
-            <Text style={styles.emptyStateText}>No favorite songs yet</Text>
-          </View>
-        ) : (
-          <FlatList
-            data={favorites}
-            renderItem={renderTrack}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.list}
-          />
-        )}
-      </LinearGradient>
+          {favorites.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="heart-outline" size={64} color="#666" />
+              <Text style={styles.emptyStateText}>No favorite songs yet</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={favorites}
+              renderItem={renderTrack}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.list}
+            />
+          )}
+        </LinearGradient>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+  },
   container: {
     flex: 1,
     backgroundColor: "#000",

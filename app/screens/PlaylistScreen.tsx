@@ -12,7 +12,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NavigationProp } from "../types/navigation";
 import { Ionicons } from "@expo/vector-icons";
 
-export function ProfileScreen() {
+export function PlaylistScreen() {
   const navigation = useNavigation<NavigationProp>();
 
   return (
@@ -25,10 +25,10 @@ export function ProfileScreen() {
           >
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.title}>Profile</Text>
+          <Text style={styles.title}>Playlists</Text>
         </View>
         <View style={styles.content}>
-          <Text style={styles.text}>Profile Screen</Text>
+          <Text style={styles.text}>Playlists</Text>
         </View>
       </View>
     </SafeAreaView>
