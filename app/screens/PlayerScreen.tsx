@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import Slider from "@react-native-community/slider";
 import { LinearGradient } from "expo-linear-gradient";
@@ -15,6 +16,7 @@ import { useAudio } from "../context/audio-context";
 import { useNavigation } from "@react-navigation/native";
 import { NavigationProp } from "../types/navigation";
 import { useFavorites } from "../context/favorites-context";
+import Navbar from "../components/Navbar";
 
 const { width } = Dimensions.get("window");
 
@@ -23,25 +25,36 @@ export function PlayerScreen() {
   const {
     currentTrack,
     isPlaying,
+    isBuffering,
+    isLoading,
+    isLoaded,
     playTrack,
     pauseTrack,
     seekTo,
     position,
     duration,
     playlist,
-    loadTrack,
+    playNext,
+    playPrevious,
   } = useAudio();
   const { toggleFavorite, isFavorite } = useFavorites();
   const [isDragging, setIsDragging] = useState(false);
   const [sliderValue, setSliderValue] = useState(0);
 
   useEffect(() => {
-    if (currentTrack) {
+    if (!isDragging && currentTrack && isLoaded) {
       setSliderValue(position);
     }
-  }, [position]);
+  }, [position, isDragging, isLoaded]);
 
-  const handleSeek = async (value: number) => {
+  const handleSeek = (value: number) => {
+    if (!isLoaded) return;
+    setSliderValue(value);
+  };
+
+  const handleSlidingComplete = async (value: number) => {
+    if (!isLoaded) return;
+    setIsDragging(false);
     try {
       await seekTo(value);
     } catch (error) {
@@ -49,56 +62,21 @@ export function PlayerScreen() {
     }
   };
 
-  const handleSlidingStart = () => {
-    setIsDragging(true);
-  };
-
-  const handleSlidingComplete = async (value: number) => {
-    setIsDragging(false);
-    await seekTo(value);
-  };
-
-  const handlePlayPause = () => {
-    if (isPlaying) {
-      pauseTrack();
-    } else {
-      playTrack();
+  const handlePlayPause = async () => {
+    if (!isLoaded) return;
+    try {
+      if (isPlaying) {
+        await pauseTrack();
+      } else {
+        await playTrack();
+      }
+    } catch (error) {
+      console.error("Play/Pause error:", error);
     }
   };
 
-  const handleNext = () => {
-    if (!currentTrack || !playlist.length) return;
-
-    const currentIndex = playlist.findIndex(
-      (track) => track.id === currentTrack.id
-    );
-    if (currentIndex === -1) return;
-
-    const nextIndex = (currentIndex + 1) % playlist.length;
-    const nextTrack = playlist[nextIndex];
-
-    // Load and play the next track
-    loadTrack(nextTrack);
-  };
-
-  const handlePrevious = () => {
-    if (!currentTrack || !playlist.length) return;
-
-    const currentIndex = playlist.findIndex(
-      (track) => track.id === currentTrack.id
-    );
-    if (currentIndex === -1) return;
-
-    const previousIndex =
-      (currentIndex - 1 + playlist.length) % playlist.length;
-    const previousTrack = playlist[previousIndex];
-
-    // Load and play the previous track
-    loadTrack(previousTrack);
-  };
-
-  const formatTime = (milliseconds: number) => {
-    const totalSeconds = Math.floor(milliseconds / 1000);
+  const formatTime = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
@@ -119,7 +97,6 @@ export function PlayerScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient colors={["#1a1a1a", "#000000"]} style={styles.gradient}>
-        {/* Back Button */}
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -127,7 +104,6 @@ export function PlayerScreen() {
           <Ionicons name="chevron-back" size={24} color="#fff" />
         </TouchableOpacity>
 
-        {/* Album Art */}
         <View style={styles.albumArtContainer}>
           {currentTrack.artwork ? (
             <Image
@@ -141,7 +117,6 @@ export function PlayerScreen() {
           )}
         </View>
 
-        {/* Track Info */}
         <View style={styles.trackInfo}>
           <Text style={styles.trackTitle}>{currentTrack.title}</Text>
           <Text style={styles.trackArtist}>{currentTrack.artist}</Text>
@@ -157,45 +132,84 @@ export function PlayerScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Progress Bar */}
         <View style={styles.progressContainer}>
           <Text style={styles.timeText}>{formatTime(sliderValue)}</Text>
-          <Slider
-            style={styles.slider}
-            minimumValue={0}
-            maximumValue={duration}
-            value={sliderValue}
-            onValueChange={handleSeek}
-            onSlidingStart={handleSlidingStart}
-            onSlidingComplete={handleSlidingComplete}
-            minimumTrackTintColor="#1DB954"
-            maximumTrackTintColor="#666"
-            thumbTintColor="#1DB954"
-          />
+          {isLoaded ? (
+            <Slider
+              style={styles.slider}
+              minimumValue={0}
+              maximumValue={duration}
+              value={sliderValue}
+              onValueChange={handleSeek}
+              onSlidingStart={() => setIsDragging(true)}
+              onSlidingComplete={handleSlidingComplete}
+              minimumTrackTintColor="#1DB954"
+              maximumTrackTintColor="#666"
+              thumbTintColor="#1DB954"
+              disabled={isLoading || isBuffering}
+            />
+          ) : (
+            <View style={styles.loadingPlaceholder}>
+              <ActivityIndicator size="small" color="#666" />
+            </View>
+          )}
           <Text style={styles.timeText}>{formatTime(duration)}</Text>
         </View>
 
-        {/* Controls */}
         <View style={styles.controls}>
           <TouchableOpacity
-            onPress={handlePrevious}
+            onPress={playPrevious}
             style={styles.controlButton}
+            disabled={
+              !isLoaded || isLoading || isBuffering || playlist.length <= 1
+            }
           >
-            <Ionicons name="play-skip-back" size={24} color="#fff" />
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={handlePlayPause} style={styles.playButton}>
             <Ionicons
-              name={isPlaying ? "pause" : "play"}
-              size={32}
-              color="#fff"
+              name="play-skip-back"
+              size={24}
+              color={
+                !isLoaded || isLoading || isBuffering || playlist.length <= 1
+                  ? "#666"
+                  : "#fff"
+              }
             />
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={handleNext} style={styles.controlButton}>
-            <Ionicons name="play-skip-forward" size={24} color="#fff" />
+          <TouchableOpacity
+            onPress={handlePlayPause}
+            style={styles.playButton}
+            disabled={!isLoaded || isLoading || isBuffering}
+          >
+            {isLoading || isBuffering ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Ionicons
+                name={isPlaying ? "pause" : "play"}
+                size={32}
+                color="#fff"
+              />
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={playNext}
+            style={styles.controlButton}
+            disabled={
+              !isLoaded || isLoading || isBuffering || playlist.length <= 1
+            }
+          >
+            <Ionicons
+              name="play-skip-forward"
+              size={24}
+              color={
+                !isLoaded || isLoading || isBuffering || playlist.length <= 1
+                  ? "#666"
+                  : "#fff"
+              }
+            />
           </TouchableOpacity>
         </View>
+        <Navbar />
       </LinearGradient>
     </SafeAreaView>
   );
@@ -229,8 +243,8 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   albumArt: {
-    width: width * 0.8,
-    height: width * 0.8,
+    width: Math.min(width * 0.8, 250),
+    height: Math.min(width * 0.8, 250),
     borderRadius: 20,
     marginTop: 50,
   },
@@ -244,10 +258,11 @@ const styles = StyleSheet.create({
     marginTop: 32,
   },
   trackTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "bold",
     color: "#fff",
     marginBottom: 8,
+    justifyContent: "center",
   },
   trackArtist: {
     fontSize: 18,
@@ -262,18 +277,28 @@ const styles = StyleSheet.create({
   timeText: {
     color: "#fff",
     marginHorizontal: 10,
+    width: 50,
+    textAlign: "center",
   },
   slider: {
     flex: 1,
+    height: 40,
+  },
+  loadingPlaceholder: {
+    flex: 1,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   controls: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 32,
+    marginTop: 10,
+    marginBottom: 40,
   },
   controlButton: {
-    padding: 8,
+    padding: 16,
   },
   playButton: {
     width: 64,

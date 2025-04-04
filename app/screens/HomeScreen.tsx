@@ -20,6 +20,9 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NavigationProp } from "../types/navigation";
 import { Track } from "../types/track";
 import { deezerApi } from "../services/deezer-api";
+import Navbar from "../components/Navbar";
+import MiniPlayer from "../components/MiniPlayer";
+import { TrackMenu } from "../components/TrackMenu";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = (width - 48) / 2;
@@ -70,12 +73,8 @@ export function HomeScreen() {
     const fetchSongs = async () => {
       setIsLoading(true);
       try {
-        // Fetch popular songs for the Popular category
         const popularResults = await deezerApi.searchTracks("popular");
-
-        // Fetch random songs for All Songs section
         const randomResults = await deezerApi.searchTracks("random");
-
         setAllSongs(randomResults);
         setPlaylist(randomResults);
       } catch (error) {
@@ -179,7 +178,6 @@ export function HomeScreen() {
     },
   ];
 
-  // Use searchResults if there's a search query, otherwise use allSongs
   const displayTracks = searchQuery ? searchResults : allSongs;
 
   const renderTrack = ({ item: track }: { item: Track }) => (
@@ -201,16 +199,19 @@ export function HomeScreen() {
         <Text style={styles.trackTitle}>{track.title}</Text>
         <Text style={styles.trackArtist}>{track.artist}</Text>
       </View>
-      <TouchableOpacity
-        onPress={() => toggleFavorite(track)}
-        style={styles.favoriteButton}
-      >
-        <Ionicons
-          name={isFavorite(track.id) ? "heart" : "heart-outline"}
-          size={24}
-          color={isFavorite(track.id) ? "#FF4B4B" : "#666"}
-        />
-      </TouchableOpacity>
+      <View style={styles.actions}>
+        <TouchableOpacity
+          onPress={() => toggleFavorite(track)}
+          style={styles.favoriteButton}
+        >
+          <Ionicons
+            name={isFavorite(track.id) ? "heart" : "heart-outline"}
+            size={24}
+            color={isFavorite(track.id) ? "#FF4B4B" : "#666"}
+          />
+        </TouchableOpacity>
+        <TrackMenu track={track} />
+      </View>
     </TouchableOpacity>
   );
 
@@ -235,14 +236,7 @@ export function HomeScreen() {
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <Text style={styles.greeting}>{greeting}</Text>
-            <View style={styles.headerButtons}>
-              <TouchableOpacity
-                style={styles.headerButton}
-                onPress={() => navigation.navigate("Favorites")}
-              >
-                <Ionicons name="heart" size={24} color="#fff" />
-              </TouchableOpacity>
-            </View>
+            <View style={styles.headerButtons}></View>
           </View>
         </View>
 
@@ -265,7 +259,7 @@ export function HomeScreen() {
         {isLoading ? (
           <ActivityIndicator
             size="large"
-            color="#FF6B6B"
+            color="#1DB954"
             style={styles.loader}
           />
         ) : (
@@ -275,20 +269,27 @@ export function HomeScreen() {
             renderItem={renderTrack}
             style={styles.content}
             ListHeaderComponent={() => (
-              <View style={styles.categoriesContainer}>
-                <Text style={styles.sectionTitle}>Categories</Text>
-                <FlatList
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  data={categories}
-                  keyExtractor={(item) => item.id}
-                  renderItem={renderCategory}
-                  contentContainerStyle={styles.categoriesList}
-                />
-              </View>
+              <>
+                <View style={styles.categoriesContainer}>
+                  <Text style={styles.sectionTitle}>Categories</Text>
+                  <FlatList
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    data={categories}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderCategory}
+                    contentContainerStyle={styles.categoriesList}
+                  />
+                </View>
+                <Text style={styles.sectionTitle}>
+                  {searchQuery ? "Search Results" : "All Songs"}
+                </Text>
+              </>
             )}
           />
         )}
+        <MiniPlayer />
+        <Navbar />
       </LinearGradient>
     </SafeAreaView>
   );
@@ -311,6 +312,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
   },
+  headerContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+  },
   greeting: {
     fontSize: 24,
     fontWeight: "bold",
@@ -320,7 +327,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 16,
   },
-  iconButton: {
+  headerButton: {
     padding: 8,
   },
   searchContainer: {
@@ -341,14 +348,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     padding: 8,
   },
-  section: {
-    padding: 16,
-  },
   sectionTitle: {
     fontSize: 22,
     fontWeight: "bold",
     color: "#fff",
     marginBottom: 16,
+    marginHorizontal: 16,
   },
   trackItem: {
     flexDirection: "row",
@@ -357,9 +362,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#1E1E1E",
     borderRadius: 8,
     marginBottom: 8,
-    marginRight: 20,
-    marginLeft: 20,
-    width: width - 32, // Full width minus padding
+    marginHorizontal: 16,
   },
   activeTrack: {
     backgroundColor: "#2A2A2A",
@@ -381,11 +384,11 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   categoryCard: {
-    marginLeft: 16,
     width: 160,
     height: 100,
     borderRadius: 8,
     overflow: "hidden",
+    marginRight: 16,
   },
   categoryGradient: {
     flex: 1,
@@ -396,43 +399,10 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+    marginTop: 8,
   },
   categoriesList: {
-    padding: 16,
-  },
-  favoritesList: {
-    padding: 16,
-  },
-  playlist: {
-    padding: 16,
-  },
-  favoriteTrack: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    backgroundColor: "#1E1E1E",
-    borderRadius: 8,
-    marginBottom: 8,
-    marginRight: 8,
-    width: width - 32, // Full width minus padding
-  },
-  favoriteArtwork: {
-    width: 50,
-    height: 50,
-    borderRadius: 4,
-  },
-  favoriteInfo: {
-    flex: 1,
-    marginLeft: 12,
-  },
-  favoriteTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#fff",
-  },
-  favoriteArtist: {
-    fontSize: 14,
-    color: "#999",
+    paddingHorizontal: 16,
   },
   defaultArtwork: {
     backgroundColor: "#282828",
@@ -444,26 +414,29 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 4,
   },
-  headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  headerButton: {
-    padding: 8,
-  },
   categoriesContainer: {
-    padding: 16,
-  },
-  categoryItem: {
-    marginRight: 16,
-  },
-  songsContainer: {
-    padding: 16,
-  },
-  tracksList: {
-    padding: 16,
+    marginBottom: 24,
   },
   loader: {
     marginTop: 16,
+  },
+  playlistButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1E1E1E",
+    padding: 16,
+    borderRadius: 8,
+    marginHorizontal: 16,
+    marginBottom: 24,
+  },
+  playlistButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+    marginLeft: 12,
+  },
+  actions: {
+    flexDirection: "row",
+    alignItems: "center",
   },
 });

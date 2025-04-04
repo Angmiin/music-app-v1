@@ -18,7 +18,7 @@ import { Track } from "../types/track";
 
 export function FavoritesScreen() {
   const navigation = useNavigation<NavigationProp>();
-  const { currentTrack, stopTrack, loadTrack } = useAudio();
+const { currentTrack, stopTrack, loadTrack } = useAudio();
   const { favorites, toggleFavorite, isFavorite } = useFavorites();
 
   const handleTrackPress = (track: Track) => {
