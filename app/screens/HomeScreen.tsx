@@ -20,7 +20,6 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NavigationProp } from "../types/navigation";
 import { Track } from "../types/track";
 import { deezerApi } from "../services/deezer-api";
-import Navbar from "../components/Navbar";
 import MiniPlayer from "../components/MiniPlayer";
 import { TrackMenu } from "../components/TrackMenu";
 
@@ -289,7 +288,6 @@ export function HomeScreen() {
           />
         )}
         <MiniPlayer />
-        <Navbar />
       </LinearGradient>
     </SafeAreaView>
   );

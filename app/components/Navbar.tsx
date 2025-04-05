@@ -7,7 +7,7 @@ import { NavigationProp } from '../types/navigation';
 const Navbar = () => {
   const navigation = useNavigation<NavigationProp>();
 
-  const tabs = [
+  const tabs: { name: string; icon: keyof typeof Ionicons.glyphMap }[] = [
     { name: 'Home', icon: 'home' },
     { name: 'Playlists', icon: 'list' },
     { name: 'Favorites', icon: 'heart' },

@@ -12,7 +12,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NavigationProp } from "../types/navigation";
 import { usePlaylists } from "../context/playlist-context";
-import Navbar from "../components/Navbar";
 
 export function PlaylistScreen() {
   const navigation = useNavigation<NavigationProp>();
@@ -41,8 +40,6 @@ export function PlaylistScreen() {
           )}
           contentContainerStyle={styles.list}
         />
-
-        <Navbar />
       </LinearGradient>
     </SafeAreaView>
   );
