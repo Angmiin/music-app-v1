@@ -16,8 +16,8 @@ import { NavigationProp } from "../types/navigation";
 import { usePlaylists } from "../context/playlist-context";
 import { useAudio } from "../context/audio-context";
 import { useFavorites } from "../context/favorites-context";
-import Navbar from "../components/Navbar";
 import { Track } from "../types/track";
+import MiniPlayer from "../components/MiniPlayer";
 
 const { width } = Dimensions.get("window");
 
@@ -136,8 +136,7 @@ export function PlaylistDetailScreen() {
             <Text style={styles.emptyText}>No tracks in this playlist</Text>
           </View>
         )}
-
-        <Navbar />
+        <MiniPlayer />
       </LinearGradient>
     </SafeAreaView>
   );

@@ -11,6 +11,7 @@ import { AudioProvider } from "./context/audio-context";
 import { FavoritesProvider } from "./context/favorites-context";
 import { PlaylistProvider } from "./context/playlist-context";
 import { RootStackParamList } from "./types/navigation";
+import Welcome from "./screens/Welcome";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -51,6 +52,7 @@ export default function App() {
                 component={CategoryScreen}
                 options={{ title: "Category" }}
               />
+              <Stack.Screen name="Welcome" component={Welcome} />
             </Stack.Navigator>
           </NavigationContainer>
         </PlaylistProvider>

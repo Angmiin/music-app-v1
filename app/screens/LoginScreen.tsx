@@ -43,10 +43,7 @@ const LoginScreen = () => {
   };
 
   return (
-    <LinearGradient colors={["#ffffff", "#181616"]} style={styles.container}>
-      <View style={styles.container}>
-        <Text style={styles.title}>beatflowy</Text>
-      </View>
+    <LinearGradient colors={["#343231", "#181616"]} style={styles.container}>
       <Image source={require("assets/images/logo.jpg")} style={styles.logo} />
       <View style={styles.formContainer}>
         <Formik
@@ -122,11 +119,12 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
   title: {
     fontSize: 30,
-    marginTop: 40,
+    color: "#E5E5E5",
   },
   container: {
     flex: 1,
     alignItems: "center",
+    justifyContent: "center",
   },
   formContainer: {
     width: "80%",
@@ -182,9 +180,8 @@ const styles = StyleSheet.create({
   logo: {
     width: 150,
     height: 150,
-    marginBottom: 40,
+    marginBottom: 20,
     borderRadius: 40,
-    marginTop: 50,
   },
 });
 

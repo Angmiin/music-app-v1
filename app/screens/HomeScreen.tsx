@@ -288,8 +288,6 @@ export function HomeScreen() {
             )}
           />
         )}
-        <MiniPlayer />
-        <Navbar />
       </LinearGradient>
     </SafeAreaView>
   );

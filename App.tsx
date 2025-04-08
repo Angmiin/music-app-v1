@@ -18,6 +18,7 @@ import { AuthProvider, useAuth } from "./app/context/auth-context";
 import { RootStackParamList } from "./app/types/navigation";
 import Navbar from "./app/components/Navbar";
 import MiniPlayer from "./app/components/MiniPlayer";
+import Welcome from "./app/screens/Welcome";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -83,8 +84,9 @@ function AuthStack() {
         contentStyle: { backgroundColor: "#000" },
         animation: "fade",
       }}
-      initialRouteName="Login"
+      initialRouteName="Welcome"
     >
+      <Stack.Screen name="Welcome" component={Welcome} />
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="SignUp" component={SignUpScreen} />
     </Stack.Navigator>

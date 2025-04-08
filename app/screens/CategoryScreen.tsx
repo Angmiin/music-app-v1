@@ -15,6 +15,7 @@ import { NavigationProp } from "../types/navigation";
 import { useAudio } from "../context/audio-context";
 import { useFavorites } from "../context/favorites-context";
 import { Track } from "../types/track";
+import MiniPlayer from "../components/MiniPlayer";
 
 type RouteParams = {
   category: string;
@@ -90,6 +91,7 @@ export function CategoryScreen() {
           contentContainerStyle={styles.list}
         />
       </LinearGradient>
+      <MiniPlayer />
     </SafeAreaView>
   );
 }

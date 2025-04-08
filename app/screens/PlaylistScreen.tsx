@@ -41,8 +41,6 @@ export function PlaylistScreen() {
           )}
           contentContainerStyle={styles.list}
         />
-
-        <Navbar />
       </LinearGradient>
     </SafeAreaView>
   );

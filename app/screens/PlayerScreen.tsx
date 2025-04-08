@@ -121,7 +121,7 @@ export function PlayerScreen() {
           <Text style={styles.trackTitle}>{currentTrack.title}</Text>
           <Text style={styles.trackArtist}>{currentTrack.artist}</Text>
           <TouchableOpacity
-            onPress={() => toggleFavorite(currentTrack.id)}
+            onPress={() => toggleFavorite(currentTrack)}
             style={styles.favoriteButton}
           >
             <Ionicons
@@ -209,7 +209,6 @@ export function PlayerScreen() {
             />
           </TouchableOpacity>
         </View>
-        <Navbar />
       </LinearGradient>
     </SafeAreaView>
   );
@@ -240,7 +239,7 @@ const styles = StyleSheet.create({
   },
   albumArtContainer: {
     alignItems: "center",
-    marginTop: 20,
+    marginTop: 40,
   },
   albumArt: {
     width: Math.min(width * 0.8, 250),

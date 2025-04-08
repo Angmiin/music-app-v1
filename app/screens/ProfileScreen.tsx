@@ -15,6 +15,7 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential,
   updateEmail,
+  updatePassword,
 } from "firebase/auth";
 import { auth } from "../context/firebase/firebaseConfig";
 
@@ -137,7 +138,7 @@ export function ProfileScreen() {
   const handleLogout = async () => {
     try {
       await logout();
-      navigation.navigate("Login");
+      navigation.navigate("Welcome");
     } catch (error) {
       Alert.alert("Error", "Failed to logout. Please try again.");
     }
