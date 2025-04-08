@@ -18,6 +18,7 @@ import {
   updatePassword,
 } from "firebase/auth";
 import { auth } from "../context/firebase/firebaseConfig";
+import { Audio } from "expo-av";
 
 export function ProfileScreen() {
   const navigation = useNavigation<NavigationProp>();
@@ -138,7 +139,8 @@ export function ProfileScreen() {
   const handleLogout = async () => {
     try {
       await logout();
-      navigation.navigate("Welcome");
+      await Audio.setIsEnabledAsync(false);
+      navigation.push("Welcome");
     } catch (error) {
       Alert.alert("Error", "Failed to logout. Please try again.");
     }
