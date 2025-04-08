@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "606395332458",
+    "project_id": "beatflowy",
+    "storage_bucket": "beatflowy.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:606395332458:android:d86b307a3af1bac48c1713",
+        "android_client_info": {
+          "package_name": "music.app.v1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDkKOevhumFjGWAyuJfArCXYU8Y1WV5kDI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,11 +1,15 @@
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 export type RootStackParamList = {
+  Auth: undefined;
+  Main: undefined;
   Home: undefined;
   Playlists: undefined;
   PlaylistDetail: { playlistId: string };
   Favorites: undefined;
   Profile: undefined;
+  Login: undefined;
+  SignUp: undefined;
   Player: { track: Track };
   Category: { category: string; tracks: Track[] };
 };
