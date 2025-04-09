@@ -6,50 +6,58 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
+  Platform,
+  StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NavigationProp } from "../types/navigation";
 import { usePlaylists } from "../context/playlist-context";
-import Navbar from "../components/Navbar";
 
 export function PlaylistScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { playlists } = usePlaylists();
 
   return (
-    <SafeAreaView style={styles.container}>
-      <LinearGradient colors={["#1a1a1a", "#000000"]} style={styles.gradient}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Your Playlists</Text>
-        </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <LinearGradient colors={["#1a1a1a", "#000000"]} style={styles.gradient}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Your Playlists</Text>
+          </View>
 
-        <FlatList
-          data={playlists}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.playlistItem}
-              onPress={() =>
-                navigation.navigate("PlaylistDetail", { playlistId: item.id })
-              }
-            >
-              <Text style={styles.playlistName}>{item.name}</Text>
-              <Ionicons name="chevron-forward" size={20} color="#666" />
-            </TouchableOpacity>
-          )}
-          contentContainerStyle={styles.list}
-        />
-      </LinearGradient>
+          <FlatList
+            data={playlists}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.playlistItem}
+                onPress={() =>
+                  navigation.navigate("PlaylistDetail", { playlistId: item.id })
+                }
+              >
+                <Text style={styles.playlistName}>{item.name}</Text>
+                <Ionicons name="chevron-forward" size={20} color="#666" />
+              </TouchableOpacity>
+            )}
+            contentContainerStyle={styles.list}
+          />
+        </LinearGradient>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#121212",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+  },
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: "#121212",
   },
   gradient: {
     flex: 1,

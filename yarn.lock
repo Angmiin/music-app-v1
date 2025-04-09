@@ -2166,6 +2166,13 @@
   resolved "https://registry.yarnpkg.com/@react-native-community/slider/-/slider-4.5.5.tgz#d70fc5870477760033769bbd6625d57e7d7678b2"
   integrity sha512-x2N415pg4ZxIltArOKczPwn7JEYh+1OxQ4+hTnafomnMsqs65HZuEWcX+Ch8c5r8V83DiunuQUf5hWGWlw8hQQ==
 
+"@react-native-firebase/auth@^21.13.0":
+  version "21.13.0"
+  resolved "https://registry.yarnpkg.com/@react-native-firebase/auth/-/auth-21.13.0.tgz#685146588bc537e1e6de5adbfcdf1972c4d09e1f"
+  integrity sha512-oM4PgOmh5xSB+pDQil5ATbEZ48AxBU2lC6EJCDCcSf5LqdWwOm8LA3Ew1ffJnCQJ0RafH7eSrYpFgnxR2y2sPg==
+  dependencies:
+    plist "^3.1.0"
+
 "@react-native/assets-registry@0.76.9":
   version "0.76.9"
   resolved "https://registry.yarnpkg.com/@react-native/assets-registry/-/assets-registry-0.76.9.tgz#ec63d32556c29bfa29e55b5e6e24c9d6e1ebbfac"
@@ -5812,7 +5819,7 @@ pkg-dir@^3.0.0:
   dependencies:
     find-up "^3.0.0"
 
-plist@^3.0.5:
+plist@^3.0.5, plist@^3.1.0:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/plist/-/plist-3.1.0.tgz#797a516a93e62f5bde55e0b9cc9c967f860893c9"
   integrity sha512-uysumyrvkUX0rX/dEVqt8gC3sTBzd4zoWfLeS29nb53imdaXVvLINYXTI2GNqzaMuvacNx4uJQ8+b3zXR0pkgQ==

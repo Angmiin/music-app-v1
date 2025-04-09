@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  StatusBar
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NavigationProp } from "../types/navigation";
@@ -308,7 +309,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#121212",
-    paddingTop: 40,
+    paddingTop: StatusBar.currentHeight,
   },
   header: {
     flexDirection: "row",

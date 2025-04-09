@@ -8,6 +8,8 @@ import {
   SafeAreaView,
   Dimensions,
   ActivityIndicator,
+  Platform,
+  StatusBar,
 } from "react-native";
 import Slider from "@react-native-community/slider";
 import { LinearGradient } from "expo-linear-gradient";
@@ -95,126 +97,133 @@ export function PlayerScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <LinearGradient colors={["#1a1a1a", "#000000"]} style={styles.gradient}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="chevron-back" size={24} color="#fff" />
-        </TouchableOpacity>
-
-        <View style={styles.albumArtContainer}>
-          {currentTrack.artwork ? (
-            <Image
-              source={{ uri: currentTrack.artwork }}
-              style={styles.albumArt}
-            />
-          ) : (
-            <View style={[styles.albumArt, styles.defaultArtwork]}>
-              <Ionicons name="musical-note" size={64} color="#666" />
-            </View>
-          )}
-        </View>
-
-        <View style={styles.trackInfo}>
-          <Text style={styles.trackTitle}>{currentTrack.title}</Text>
-          <Text style={styles.trackArtist}>{currentTrack.artist}</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <LinearGradient colors={["#1a1a1a", "#000000"]} style={styles.gradient}>
           <TouchableOpacity
-            onPress={() => toggleFavorite(currentTrack)}
-            style={styles.favoriteButton}
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
           >
-            <Ionicons
-              name={isFavorite(currentTrack.id) ? "heart" : "heart-outline"}
-              size={24}
-              color={isFavorite(currentTrack.id) ? "#FF4B4B" : "#fff"}
-            />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.progressContainer}>
-          <Text style={styles.timeText}>{formatTime(sliderValue)}</Text>
-          {isLoaded ? (
-            <Slider
-              style={styles.slider}
-              minimumValue={0}
-              maximumValue={duration}
-              value={sliderValue}
-              onValueChange={handleSeek}
-              onSlidingStart={() => setIsDragging(true)}
-              onSlidingComplete={handleSlidingComplete}
-              minimumTrackTintColor="#1DB954"
-              maximumTrackTintColor="#666"
-              thumbTintColor="#1DB954"
-              disabled={isLoading || isBuffering}
-            />
-          ) : (
-            <View style={styles.loadingPlaceholder}>
-              <ActivityIndicator size="small" color="#666" />
-            </View>
-          )}
-          <Text style={styles.timeText}>{formatTime(duration)}</Text>
-        </View>
-
-        <View style={styles.controls}>
-          <TouchableOpacity
-            onPress={playPrevious}
-            style={styles.controlButton}
-            disabled={
-              !isLoaded || isLoading || isBuffering || playlist.length <= 1
-            }
-          >
-            <Ionicons
-              name="play-skip-back"
-              size={24}
-              color={
-                !isLoaded || isLoading || isBuffering || playlist.length <= 1
-                  ? "#666"
-                  : "#fff"
-              }
-            />
+            <Ionicons name="chevron-back" size={24} color="#fff" />
           </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={handlePlayPause}
-            style={styles.playButton}
-            disabled={!isLoaded || isLoading || isBuffering}
-          >
-            {isLoading || isBuffering ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Ionicons
-                name={isPlaying ? "pause" : "play"}
-                size={32}
-                color="#fff"
+          <View style={styles.albumArtContainer}>
+            {currentTrack.artwork ? (
+              <Image
+                source={{ uri: currentTrack.artwork }}
+                style={styles.albumArt}
               />
+            ) : (
+              <View style={[styles.albumArt, styles.defaultArtwork]}>
+                <Ionicons name="musical-note" size={64} color="#666" />
+              </View>
             )}
-          </TouchableOpacity>
+          </View>
 
-          <TouchableOpacity
-            onPress={playNext}
-            style={styles.controlButton}
-            disabled={
-              !isLoaded || isLoading || isBuffering || playlist.length <= 1
-            }
-          >
-            <Ionicons
-              name="play-skip-forward"
-              size={24}
-              color={
+          <View style={styles.trackInfo}>
+            <Text style={styles.trackTitle}>{currentTrack.title}</Text>
+            <Text style={styles.trackArtist}>{currentTrack.artist}</Text>
+            <TouchableOpacity
+              onPress={() => toggleFavorite(currentTrack)}
+              style={styles.favoriteButton}
+            >
+              <Ionicons
+                name={isFavorite(currentTrack.id) ? "heart" : "heart-outline"}
+                size={24}
+                color={isFavorite(currentTrack.id) ? "#FF4B4B" : "#fff"}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.progressContainer}>
+            <Text style={styles.timeText}>{formatTime(sliderValue)}</Text>
+            {isLoaded ? (
+              <Slider
+                style={styles.slider}
+                minimumValue={0}
+                maximumValue={duration}
+                value={sliderValue}
+                onValueChange={handleSeek}
+                onSlidingStart={() => setIsDragging(true)}
+                onSlidingComplete={handleSlidingComplete}
+                minimumTrackTintColor="#1DB954"
+                maximumTrackTintColor="#666"
+                thumbTintColor="#1DB954"
+                disabled={isLoading || isBuffering}
+              />
+            ) : (
+              <View style={styles.loadingPlaceholder}>
+                <ActivityIndicator size="small" color="#666" />
+              </View>
+            )}
+            <Text style={styles.timeText}>{formatTime(duration)}</Text>
+          </View>
+
+          <View style={styles.controls}>
+            <TouchableOpacity
+              onPress={playPrevious}
+              style={styles.controlButton}
+              disabled={
                 !isLoaded || isLoading || isBuffering || playlist.length <= 1
-                  ? "#666"
-                  : "#fff"
               }
-            />
-          </TouchableOpacity>
-        </View>
-      </LinearGradient>
+            >
+              <Ionicons
+                name="play-skip-back"
+                size={24}
+                color={
+                  !isLoaded || isLoading || isBuffering || playlist.length <= 1
+                    ? "#666"
+                    : "#fff"
+                }
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={handlePlayPause}
+              style={styles.playButton}
+              disabled={!isLoaded || isLoading || isBuffering}
+            >
+              {isLoading || isBuffering ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Ionicons
+                  name={isPlaying ? "pause" : "play"}
+                  size={32}
+                  color="#fff"
+                />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={playNext}
+              style={styles.controlButton}
+              disabled={
+                !isLoaded || isLoading || isBuffering || playlist.length <= 1
+              }
+            >
+              <Ionicons
+                name="play-skip-forward"
+                size={24}
+                color={
+                  !isLoaded || isLoading || isBuffering || playlist.length <= 1
+                    ? "#666"
+                    : "#fff"
+                }
+              />
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#121212",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+  },
   container: {
     flex: 1,
     backgroundColor: "#121212",

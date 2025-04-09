@@ -11,6 +11,8 @@ import {
   Dimensions,
   FlatList,
   ActivityIndicator,
+  Platform,
+  StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -231,72 +233,79 @@ export function HomeScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <LinearGradient colors={["#1a1a1a", "#000000"]} style={styles.gradient}>
-        <View style={styles.header}>
-          <View style={styles.headerContent}>
-            <Text style={styles.greeting}>{greeting}</Text>
-            <View style={styles.headerButtons}></View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <LinearGradient colors={["#1a1a1a", "#000000"]} style={styles.gradient}>
+          <View style={styles.header}>
+            <View style={styles.headerContent}>
+              <Text style={styles.greeting}>{greeting}</Text>
+              <View style={styles.headerButtons}></View>
+            </View>
           </View>
-        </View>
 
-        <View style={styles.searchContainer}>
-          <Ionicons
-            name="search"
-            size={20}
-            color="#666"
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search songs or artists..."
-            placeholderTextColor="#666"
-            value={searchQuery}
-            onChangeText={handleSearch}
-          />
-        </View>
+          <View style={styles.searchContainer}>
+            <Ionicons
+              name="search"
+              size={20}
+              color="#666"
+              style={styles.searchIcon}
+            />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search songs or artists..."
+              placeholderTextColor="#666"
+              value={searchQuery}
+              onChangeText={handleSearch}
+            />
+          </View>
 
-        {isLoading ? (
-          <ActivityIndicator
-            size="large"
-            color="#1DB954"
-            style={styles.loader}
-          />
-        ) : (
-          <FlatList
-            data={displayTracks}
-            keyExtractor={(item) => item.id}
-            renderItem={renderTrack}
-            style={styles.content}
-            ListHeaderComponent={() => (
-              <>
-                <View style={styles.categoriesContainer}>
-                  <Text style={styles.sectionTitle}>Categories</Text>
-                  <FlatList
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    data={categories}
-                    keyExtractor={(item) => item.id}
-                    renderItem={renderCategory}
-                    contentContainerStyle={styles.categoriesList}
-                  />
-                </View>
-                <Text style={styles.sectionTitle}>
-                  {searchQuery ? "Search Results" : "All Songs"}
-                </Text>
-              </>
-            )}
-          />
-        )}
-      </LinearGradient>
+          {isLoading ? (
+            <ActivityIndicator
+              size="large"
+              color="#1DB954"
+              style={styles.loader}
+            />
+          ) : (
+            <FlatList
+              data={displayTracks}
+              keyExtractor={(item) => item.id}
+              renderItem={renderTrack}
+              style={styles.content}
+              ListHeaderComponent={() => (
+                <>
+                  <View style={styles.categoriesContainer}>
+                    <Text style={styles.sectionTitle}>Categories</Text>
+                    <FlatList
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      data={categories}
+                      keyExtractor={(item) => item.id}
+                      renderItem={renderCategory}
+                      contentContainerStyle={styles.categoriesList}
+                    />
+                  </View>
+                  <Text style={styles.sectionTitle}>
+                    {searchQuery ? "Search Results" : "All Songs"}
+                  </Text>
+                </>
+              )}
+            />
+          )}
+        </LinearGradient>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#121212",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+  },
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    backgroundColor: "#121212",
   },
   gradient: {
     flex: 1,

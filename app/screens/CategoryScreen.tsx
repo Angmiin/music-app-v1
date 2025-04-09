@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Image,
   SafeAreaView,
+  Platform,
+  StatusBar,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -39,64 +41,74 @@ export function CategoryScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <LinearGradient colors={["#1a1a1a", "#000000"]} style={styles.gradient}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Ionicons name="chevron-back" size={24} color="#fff" />
-          </TouchableOpacity>
-          <View style={styles.headerContent}>
-            <Text style={styles.title}>{category}</Text>
-            <Text style={styles.subtitle}>
-              {tracks.length} {tracks.length === 1 ? "song" : "songs"}
-            </Text>
-          </View>
-        </View>
-
-        <FlatList
-          data={tracks}
-          renderItem={({ item: track }) => (
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <LinearGradient colors={["#1a1a1a", "#000000"]} style={styles.gradient}>
+          <View style={styles.header}>
             <TouchableOpacity
-              key={track.id}
-              style={styles.trackItem}
-              onPress={() => handleTrackPress(track)}
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
             >
-              {track.artwork ? (
-                <Image source={{ uri: track.artwork }} style={styles.artwork} />
-              ) : (
-                <View style={[styles.artwork, styles.defaultArtwork]}>
-                  <Ionicons name="musical-note" size={24} color="#666" />
-                </View>
-              )}
-              <View style={styles.trackInfo}>
-                <Text style={styles.trackTitle}>{track.title}</Text>
-                <Text style={styles.trackArtist}>{track.artist}</Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => toggleFavorite(track)}
-                style={styles.favoriteButton}
-              >
-                <Ionicons
-                  name={isFavorite(track.id) ? "heart" : "heart-outline"}
-                  size={24}
-                  color={isFavorite(track.id) ? "#FF4B4B" : "#666"}
-                />
-              </TouchableOpacity>
+              <Ionicons name="chevron-back" size={24} color="#fff" />
             </TouchableOpacity>
-          )}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-        />
-      </LinearGradient>
-      <MiniPlayer />
+            <View style={styles.headerContent}>
+              <Text style={styles.title}>{category}</Text>
+              <Text style={styles.subtitle}>
+                {tracks.length} {tracks.length === 1 ? "song" : "songs"}
+              </Text>
+            </View>
+          </View>
+
+          <FlatList
+            data={tracks}
+            renderItem={({ item: track }) => (
+              <TouchableOpacity
+                key={track.id}
+                style={styles.trackItem}
+                onPress={() => handleTrackPress(track)}
+              >
+                {track.artwork ? (
+                  <Image
+                    source={{ uri: track.artwork }}
+                    style={styles.artwork}
+                  />
+                ) : (
+                  <View style={[styles.artwork, styles.defaultArtwork]}>
+                    <Ionicons name="musical-note" size={24} color="#666" />
+                  </View>
+                )}
+                <View style={styles.trackInfo}>
+                  <Text style={styles.trackTitle}>{track.title}</Text>
+                  <Text style={styles.trackArtist}>{track.artist}</Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => toggleFavorite(track)}
+                  style={styles.favoriteButton}
+                >
+                  <Ionicons
+                    name={isFavorite(track.id) ? "heart" : "heart-outline"}
+                    size={24}
+                    color={isFavorite(track.id) ? "#FF4B4B" : "#666"}
+                  />
+                </TouchableOpacity>
+              </TouchableOpacity>
+            )}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.list}
+          />
+        </LinearGradient>
+        <MiniPlayer />
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+      flex: 1,
+      backgroundColor: "#121212",
+      paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+    },
   container: {
     flex: 1,
     backgroundColor: "#000",
