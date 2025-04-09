@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
-  StatusBar
+  StatusBar,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NavigationProp } from "../types/navigation";
@@ -155,7 +155,7 @@ export function ProfileScreen() {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
+          <Ionicons name="chevron-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.title}>Profile Settings</Text>
       </View>
@@ -314,9 +314,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#333",
+    padding: 20,
   },
   backButton: {
     marginRight: 16,

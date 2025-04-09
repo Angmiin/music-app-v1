@@ -46,7 +46,7 @@ export const TrackMenu = ({ track }: TrackMenuProps) => {
         style={styles.modal}
       >
         <View style={styles.menuContainer}>
-          <Text style={styles.menuTitle}>Add to Playlist</Text>
+          <Text style={styles.menuTitle}>Add to Playlists</Text>
 
           {/* Existing playlists */}
           <Text style={styles.sectionTitle}>Your Playlists</Text>
