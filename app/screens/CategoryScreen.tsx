@@ -18,6 +18,7 @@ import { useAudio } from "../context/audio-context";
 import { useFavorites } from "../context/favorites-context";
 import { Track } from "../types/track";
 import MiniPlayer from "../components/MiniPlayer";
+import { TrackMenu } from "../components/TrackMenu";
 
 type RouteParams = {
   category: string;
@@ -91,6 +92,7 @@ export function CategoryScreen() {
                     color={isFavorite(track.id) ? "#FF4B4B" : "#666"}
                   />
                 </TouchableOpacity>
+                <TrackMenu track={track} />
               </TouchableOpacity>
             )}
             keyExtractor={(item) => item.id}

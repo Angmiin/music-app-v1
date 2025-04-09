@@ -26,23 +26,31 @@ export function PlaylistScreen() {
           <View style={styles.header}>
             <Text style={styles.title}>Your Playlists</Text>
           </View>
-
-          <FlatList
-            data={playlists}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.playlistItem}
-                onPress={() =>
-                  navigation.navigate("PlaylistDetail", { playlistId: item.id })
-                }
-              >
-                <Text style={styles.playlistName}>{item.name}</Text>
-                <Ionicons name="chevron-forward" size={20} color="#666" />
-              </TouchableOpacity>
-            )}
-            contentContainerStyle={styles.list}
-          />
+          {playlists.length > 0 ? (
+            <FlatList
+              data={playlists}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.playlistItem}
+                  onPress={() =>
+                    navigation.navigate("PlaylistDetail", {
+                      playlistId: item.id,
+                    })
+                  }
+                >
+                  <Text style={styles.playlistName}>{item.name}</Text>
+                  <Ionicons name="chevron-forward" size={20} color="#666" />
+                </TouchableOpacity>
+              )}
+              contentContainerStyle={styles.list}
+            />
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="musical-notes" size={48} color="#666" />
+              <Text style={styles.emptyText}>No Playlists</Text>
+            </View>
+          )}
         </LinearGradient>
       </View>
     </SafeAreaView>
@@ -85,5 +93,17 @@ const styles = StyleSheet.create({
   playlistName: {
     color: "#fff",
     fontSize: 16,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingBottom: 100,
+  },
+  emptyText: {
+    color: "#666",
+    fontSize: 18,
+    marginTop: 16,
+    textAlign: "center",
   },
 });

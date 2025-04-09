@@ -28,8 +28,9 @@ export function PlaylistDetailScreen() {
   const route = useRoute();
   const { playlistId } = route.params as { playlistId: string };
 
-  const { playlists, removeFromPlaylist } = usePlaylists();
-  const { loadTrack, currentTrack, stopTrack } = useAudio();
+  const { playlists, removeFromPlaylist, getPlaylistTracks, deletePlaylist } =
+    usePlaylists();
+  const { loadTrack, currentTrack, stopTrack, setPlaylist } = useAudio();
   const { toggleFavorite, isFavorite } = useFavorites();
 
   const playlist = playlists.find((p) => p.id === playlistId);
@@ -39,9 +40,15 @@ export function PlaylistDetailScreen() {
     if (currentTrack?.id === track.id) {
       stopTrack();
     } else {
+      setPlaylist(getPlaylistTracks(playlistId));
       loadTrack(track);
       navigation.navigate("Player", { track });
     }
+  };
+
+  const handleDeletePlaylist = () => {
+    deletePlaylist(playlistId);
+    navigation.goBack();
   };
 
   return (
@@ -65,6 +72,13 @@ export function PlaylistDetailScreen() {
                 {tracks.length} {tracks.length === 1 ? "song" : "songs"}
               </Text>
             </View>
+            <TouchableOpacity
+              onPress={() => {
+                handleDeletePlaylist();
+              }}
+            >
+              <Text style={styles.deletePlaylist}>Delete</Text>
+            </TouchableOpacity>
           </View>
 
           {tracks.length > 0 ? (
@@ -179,6 +193,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#999",
     marginTop: 4,
+  },
+  deletePlaylist: {
+    color: "#FF4B4B",
+    fontSize: 16,
+    textAlign: "right",
+    marginRight: 16,
   },
   backButton: {
     padding: 8,

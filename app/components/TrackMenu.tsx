@@ -59,7 +59,7 @@ export const TrackMenu = ({ track }: TrackMenuProps) => {
               <Text style={styles.menuItemText}>{playlist.name}</Text>
             </TouchableOpacity>
           ))}
-
+          <View style={styles.separator}></View>
           {/* Create new playlist */}
           <Text style={styles.sectionTitle}>Create New</Text>
           <View style={styles.inputContainer}>
@@ -109,6 +109,10 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textTransform: "uppercase",
     letterSpacing: 1,
+  },
+  separator: {
+    borderTopColor: "#aaa",
+    borderTopWidth: 1,
   },
   menuItem: {
     paddingVertical: 14,

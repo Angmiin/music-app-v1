@@ -110,6 +110,7 @@ export function HomeScreen() {
     if (currentTrack?.id === track.id) {
       stopTrack();
     } else {
+      setPlaylist(allSongs);
       loadTrack(track);
       navigation.navigate("Player", { track });
     }
