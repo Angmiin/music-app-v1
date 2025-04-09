@@ -1,4 +1,8 @@
 import { Track } from "../types/track";
+// Description: This file contains the deezerApi object that provides methods to interact with the Deezer API.
+// It includes methods to get artist information, top tracks, and search for tracks.
+// It uses the fetch API to make GET requests to the Deezer API endpoints.
+
 
 const API_KEY = "0000dd1769msh15b942d9ddf5b05p145ea4jsne90a4e389189";
 const API_HOST = "deezerdevs-deezer.p.rapidapi.com";
